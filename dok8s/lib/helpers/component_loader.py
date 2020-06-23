@@ -1,14 +1,14 @@
 """component_loader
 """
 import traceback
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from kubernetes.client.api_client import ApiClient
 
 from dok8s.logger import LOGGER
 
 
-def _fix_api_version(api_version: str = ""):
+def _fix_api_version(api_version: str = "") -> str:
     """_fix_api_version
     """
     if api_version == "NETWORKING.K8S.IO/V1BETA1":
@@ -47,7 +47,7 @@ def identify_kubernetes_object(data: Dict = None):
         LOGGER.debug(track)
 
 
-def generate_component_output(obj: Any = None):
+def generate_component_output(obj: Any = None) -> List:
     """generate_component_output
     """
 
@@ -118,6 +118,44 @@ def generate_component_output(obj: Any = None):
         "PersistentVolumeClaim": persistent_volume_claim,
         "Secret": secret,
         "Service": service,
+        "StatefulSet": stateful_set,
+    }
+
+    def switch(kind):
+        return switcher.get(kind, default)()
+
+    return switch(obj.kind)
+
+
+def generate_docker_output(obj: Any = None):
+    """generate_docker_output
+    """
+
+    def deployment():
+        name = obj.metadata.name
+        init_containers = obj.spec.template.spec.init_containers
+        containers = obj.spec.template.spec.containers
+        if init_containers:
+            containers = containers + init_containers
+        container_names = ", ".join([x.name for x in containers])
+        container_images = ", ".join([x.image for x in containers])
+        return [name, container_names, container_images]
+
+    def stateful_set():
+        name = obj.metadata.name
+        init_containers = obj.spec.template.spec.init_containers
+        containers = obj.spec.template.spec.containers
+        if init_containers:
+            containers = containers + init_containers
+        container_names = ", ".join([x.name for x in containers])
+        container_images = ", ".join([x.image for x in containers])
+        return [name, container_names, container_images]
+
+    def default():
+        return []
+
+    switcher = {
+        "Deployment": deployment,
         "StatefulSet": stateful_set,
     }
 
