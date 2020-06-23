@@ -57,7 +57,7 @@ if [[ ${test} = true ]]; then
 else
   echo -e "${green}Building docker image from remote python package...${no_color}"
   version="0.0.1"
-  version=$(poetry version | sed 's/[^0-9.]*//g')
+  version=$(poetry version | sed 's/^.*[^0-9]\([0-9]*\.[0-9]*\.[0-9]*\).*$/\1/')
   echo -e "${green}Using version ${version}${no_color}"
   docker build -f ./deployment/docker/prod.dockerfile -t nichelia/dok8s:"${version}" --build-arg APP_VERSION="${version}" .
 fi
