@@ -131,32 +131,78 @@ def generate_docker_output(obj: Any = None):
     """generate_docker_output
     """
 
-    def deployment():
-        name = obj.metadata.name
+    def details():
+        service = obj.metadata.name
         init_containers = obj.spec.template.spec.init_containers
         containers = obj.spec.template.spec.containers
         if init_containers:
             containers = containers + init_containers
-        container_names = ", ".join([x.name for x in containers])
-        container_images = ", ".join([x.image for x in containers])
-        return [name, container_names, container_images]
-
-    def stateful_set():
-        name = obj.metadata.name
-        init_containers = obj.spec.template.spec.init_containers
-        containers = obj.spec.template.spec.containers
-        if init_containers:
-            containers = containers + init_containers
-        container_names = ", ".join([x.name for x in containers])
-        container_images = ", ".join([x.image for x in containers])
-        return [name, container_names, container_images]
+        name = []
+        image = []
+        version = []
+        for container in containers:
+            image_details = container.image.split(":")
+            name.append(container.name)
+            image.append(image_details[0])
+            version.append(image_details[1])
+        names = ", ".join(name)
+        images = ", ".join(image)
+        versions = ", ".join(version)
+        return [service, names, images, versions]
 
     def default():
         return []
 
     switcher = {
-        "Deployment": deployment,
-        "StatefulSet": stateful_set,
+        "Deployment": details,
+        "StatefulSet": details,
+    }
+
+    def switch(kind):
+        return switcher.get(kind, default)()
+
+    return switch(obj.kind)
+
+
+def generate_resource_output(obj: Any = None) -> List:
+    """generate_resource_output
+    """
+
+    def details():
+        service = obj.metadata.name
+        init_containers = obj.spec.template.spec.init_containers
+        containers = obj.spec.template.spec.containers
+        if init_containers:
+            containers = containers + init_containers
+        name = []
+        request = []
+        limit_request = []
+        for container in containers:
+            name.append(container.name)
+            if container.resources:
+                cpu = container.resources.requests["cpu"]
+                cpu_limit = container.resources.limits["cpu"]
+                ram = container.resources.requests["memory"]
+                ram_limit = container.resources.limits["memory"]
+                request.append(f"CPU:{cpu} Memory:{ram}")
+                limit_request.append(f"CPU:{cpu_limit} Memory:{ram_limit}")
+            else:
+                request.append("N/A")
+                limit_request.append("N/A")
+        names = ", ".join(name)
+        requests = ", ".join(request)
+        limit_requests = ", ".join(limit_request)
+        print(names)
+        print(requests)
+        print(limit_requests)
+        return [service, names, requests, limit_requests, "--"]
+
+    def default():
+        return []
+
+    switcher = {
+        "Deployment": details,
+        "StatefulSet": details,
     }
 
     def switch(kind):

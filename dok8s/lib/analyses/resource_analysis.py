@@ -1,27 +1,27 @@
-"""Docker module for Analyses.
+"""Resource module for Analyses.
 
   Typical usage example:
 
-  docker_analyser = DockerAnalyser(directory=directory, output=output)
-  docker_analyser.analyse()
+  resource_analyser = ResourceAnalyser(directory=directory, output=output)
+  resource_analyser.analyse()
 """
 from pathlib import Path
 
 from tabulate import tabulate
 
 from dok8s.lib.analyses.kubernetes_analyser import KubernetesAnalyser
-from dok8s.lib.helpers.component_loader import generate_docker_output
+from dok8s.lib.helpers.component_loader import generate_resource_output
 from dok8s.settings import BIN_DIR
 
 
-class DockerAnalyser(KubernetesAnalyser):
+class ResourceAnalyser(KubernetesAnalyser):
     """
-    Initialise docker analyser.
+    Initialise resource analyser.
     """
 
     def __init__(self, directory: str = "", output: str = ""):
-        super(DockerAnalyser, self).__init__()
-        self.name = "docker-analysis"
+        super(ResourceAnalyser, self).__init__()
+        self.name = "resource-analysis"
         self.directory = directory
         self.output = output
         self.parsed_data = []
@@ -33,10 +33,10 @@ class DockerAnalyser(KubernetesAnalyser):
         if not self.parsed_data:
             return ""
 
-        headers = ["Platform/Service", "Name", "Image", "Version"]
+        headers = ["Platform/Service", "Name", "Request", "Limit Request", "Notes"]
         table = []
         for obj in self.parsed_data:
-            output = generate_docker_output(obj)
+            output = generate_resource_output(obj)
             if output:
                 table.append(output)
         return tabulate(table, headers, tablefmt="pipe")

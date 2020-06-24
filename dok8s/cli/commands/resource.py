@@ -1,29 +1,29 @@
-"""Docker module for CLI.
+"""Resource module for CLI.
 
   Typical usage example:
 
-  docker_command = DockerCommand()
-  docker_command.run()
+  resource_command = ResourceCommand()
+  resource_command.run()
 """
 from dok8s.cli.commands.kubernetes import KubernetesCommand
-from dok8s.lib.analyses import DockerAnalyser
+from dok8s.lib.analyses import ResourceAnalyser
 from dok8s.logger import LOGGER
 
 
-class DockerCommand(KubernetesCommand):
-    """Initialise docker command.
+class ResourceCommand(KubernetesCommand):
+    """Initialise resource command.
 
     Example:
-        dok8s docker -f <json_file>
+        dok8s resource -f <json_file>
     """
 
     def __init__(self):
-        super(DockerCommand, self).__init__()
-        self.name = "docker"
+        super(ResourceCommand, self).__init__()
+        self.name = "resource"
 
     @staticmethod
     def analyse(directory: str = "", output: str = "") -> None:
-        """Calls the docker analysis with the provided kubernetes data.
+        """Calls the resource analysis with the provided kubernetes data.
 
         Execute analysis, write output.
 
@@ -31,6 +31,6 @@ class DockerCommand(KubernetesCommand):
             file: The kubernetes deployment file for the input of the command.
             output: The filename for the output of the command.
         """
-        analyser = DockerAnalyser(directory=directory, output=output)
+        analyser = ResourceAnalyser(directory=directory, output=output)
         LOGGER.debug(f'Use "{analyser.name}" analyser with directory: "{directory}"')
         analyser.analyse()
