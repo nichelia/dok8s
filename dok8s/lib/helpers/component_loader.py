@@ -1,14 +1,14 @@
 """component_loader
 """
 import traceback
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from kubernetes.client.api_client import ApiClient
 
 from dok8s.logger import LOGGER
 
 
-def _fix_api_version(api_version: str = ""):
+def _fix_api_version(api_version: str = "") -> str:
     """_fix_api_version
     """
     if api_version == "NETWORKING.K8S.IO/V1BETA1":
@@ -47,7 +47,7 @@ def identify_kubernetes_object(data: Dict = None):
         LOGGER.debug(track)
 
 
-def generate_component_output(obj: Any = None):
+def generate_component_output(obj: Any = None) -> List:
     """generate_component_output
     """
 
@@ -119,6 +119,90 @@ def generate_component_output(obj: Any = None):
         "Secret": secret,
         "Service": service,
         "StatefulSet": stateful_set,
+    }
+
+    def switch(kind):
+        return switcher.get(kind, default)()
+
+    return switch(obj.kind)
+
+
+def generate_docker_output(obj: Any = None):
+    """generate_docker_output
+    """
+
+    def details():
+        service = obj.metadata.name
+        init_containers = obj.spec.template.spec.init_containers
+        containers = obj.spec.template.spec.containers
+        if init_containers:
+            containers = containers + init_containers
+        name = []
+        image = []
+        version = []
+        for container in containers:
+            image_details = container.image.split(":")
+            name.append(container.name)
+            image.append(image_details[0])
+            version.append(image_details[1])
+        names = ", ".join(name)
+        images = ", ".join(image)
+        versions = ", ".join(version)
+        return [service, names, images, versions]
+
+    def default():
+        return []
+
+    switcher = {
+        "Deployment": details,
+        "StatefulSet": details,
+    }
+
+    def switch(kind):
+        return switcher.get(kind, default)()
+
+    return switch(obj.kind)
+
+
+def generate_resource_output(obj: Any = None) -> List:
+    """generate_resource_output
+    """
+
+    def details():
+        service = obj.metadata.name
+        init_containers = obj.spec.template.spec.init_containers
+        containers = obj.spec.template.spec.containers
+        if init_containers:
+            containers = containers + init_containers
+        name = []
+        request = []
+        limit_request = []
+        for container in containers:
+            name.append(container.name)
+            if container.resources:
+                cpu = container.resources.requests["cpu"]
+                cpu_limit = container.resources.limits["cpu"]
+                ram = container.resources.requests["memory"]
+                ram_limit = container.resources.limits["memory"]
+                request.append(f"CPU:{cpu} Memory:{ram}")
+                limit_request.append(f"CPU:{cpu_limit} Memory:{ram_limit}")
+            else:
+                request.append("N/A")
+                limit_request.append("N/A")
+        names = ", ".join(name)
+        requests = ", ".join(request)
+        limit_requests = ", ".join(limit_request)
+        print(names)
+        print(requests)
+        print(limit_requests)
+        return [service, names, requests, limit_requests, "--"]
+
+    def default():
+        return []
+
+    switcher = {
+        "Deployment": details,
+        "StatefulSet": details,
     }
 
     def switch(kind):

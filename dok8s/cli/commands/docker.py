@@ -1,29 +1,29 @@
-"""Component module for CLI.
+"""Docker module for CLI.
 
   Typical usage example:
 
-  component_command = ComponentCommand()
-  component_command.run()
+  docker_command = DockerCommand()
+  docker_command.run()
 """
 from dok8s.cli.commands.kubernetes import KubernetesCommand
-from dok8s.lib.analyses import ComponentAnalyser
+from dok8s.lib.analyses import DockerAnalyser
 from dok8s.logger import LOGGER
 
 
-class ComponentCommand(KubernetesCommand):
-    """Initialise component command.
+class DockerCommand(KubernetesCommand):
+    """Initialise docker command.
 
     Example:
-        dok8s component -f <json_file>
+        dok8s docker -f <json_file>
     """
 
     def __init__(self):
-        super(ComponentCommand, self).__init__()
-        self.name = "component"
+        super(DockerCommand, self).__init__()
+        self.name = "docker"
 
     @staticmethod
     def analyse(directory: str = "", output: str = "") -> None:
-        """Calls the component analysis with the provided kubernetes data.
+        """Calls the docker analysis with the provided kubernetes data.
 
         Execute analysis, write output.
 
@@ -31,6 +31,6 @@ class ComponentCommand(KubernetesCommand):
             file: The kubernetes deployment file for the input of the command.
             output: The filename for the output of the command.
         """
-        analyser = ComponentAnalyser(directory=directory, output=output)
+        analyser = DockerAnalyser(directory=directory, output=output)
         LOGGER.debug(f'Use "{analyser.name}" analyser with directory: "{directory}"')
         analyser.analyse()

@@ -1,27 +1,27 @@
-"""Component module for Analyses.
+"""Resource module for Analyses.
 
   Typical usage example:
 
-  component_analyser = ComponentAnalyser(directory=directory, output=output)
-  component_analyser.analyse()
+  resource_analyser = ResourceAnalyser(directory=directory, output=output)
+  resource_analyser.analyse()
 """
 from pathlib import Path
 
 from tabulate import tabulate
 
 from dok8s.lib.analyses.kubernetes_analyser import KubernetesAnalyser
-from dok8s.lib.helpers.component_loader import generate_component_output
+from dok8s.lib.helpers.component_loader import generate_resource_output
 from dok8s.settings import BIN_DIR
 
 
-class ComponentAnalyser(KubernetesAnalyser):
+class ResourceAnalyser(KubernetesAnalyser):
     """
-    Initialise component analyser.
+    Initialise resource analyser.
     """
 
     def __init__(self, directory: str = "", output: str = ""):
-        super(ComponentAnalyser, self).__init__()
-        self.name = "component-analysis"
+        super(ResourceAnalyser, self).__init__()
+        self.name = "resource-analysis"
         self.directory = directory
         self.output = output
         self.parsed_data = []
@@ -33,10 +33,10 @@ class ComponentAnalyser(KubernetesAnalyser):
         if not self.parsed_data:
             return ""
 
-        headers = ["Component", "Value", "Details"]
+        headers = ["Platform/Service", "Name", "Request", "Limit Request", "Notes"]
         table = []
         for obj in self.parsed_data:
-            output = generate_component_output(obj)
+            output = generate_resource_output(obj)
             if output:
                 table.append(output)
         return tabulate(table, headers, tablefmt="pipe")
