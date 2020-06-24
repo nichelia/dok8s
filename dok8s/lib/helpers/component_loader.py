@@ -192,9 +192,6 @@ def generate_resource_output(obj: Any = None) -> List:
         names = ", ".join(name)
         requests = ", ".join(request)
         limit_requests = ", ".join(limit_request)
-        print(names)
-        print(requests)
-        print(limit_requests)
         return [service, names, requests, limit_requests, "--"]
 
     def default():
