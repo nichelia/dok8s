@@ -13,7 +13,14 @@ def _fix_api_version(api_version: str = "") -> str:
     """
     if api_version == "NETWORKING.K8S.IO/V1BETA1":
         return "NetworkingV1beta1"
-    return api_version.replace("APPS/", "")
+    api_version = (
+        api_version.replace("APPS/", "")
+        .replace("RBAC.AUTHORIZATION.K8S.IO/", "")
+        .replace("POLICY/", "")
+        .replace("BETA1", "beta1")
+        .replace("APIREGISTRATION.K8S.IO/", "")
+    )
+    return api_version
 
 
 def identify_kubernetes_object(data: Dict = None):
@@ -54,7 +61,9 @@ def generate_component_output(obj: Any = None) -> List:
     def config_map():
         kind = obj.kind
         name = obj.metadata.name
-        filenames = ", ".join(obj.data)
+        filenames = "--"
+        if obj.data:
+            filenames = ", ".join(obj.data)
         return [kind, name, filenames]
 
     def deployment():
@@ -180,12 +189,14 @@ def generate_resource_output(obj: Any = None) -> List:
         for container in containers:
             name.append(container.name)
             if container.resources:
-                cpu = container.resources.requests["cpu"]
-                cpu_limit = container.resources.limits["cpu"]
-                ram = container.resources.requests["memory"]
-                ram_limit = container.resources.limits["memory"]
-                request.append(f"CPU:{cpu} Memory:{ram}")
-                limit_request.append(f"CPU:{cpu_limit} Memory:{ram_limit}")
+                if container.resources.requests:
+                    cpu = container.resources.requests.get("cpu", "--")
+                    ram = container.resources.requests.get("memory", "--")
+                    request.append(f"CPU:{cpu} Memory:{ram}")
+                if container.resources.limits:
+                    cpu_limit = container.resources.limits.get("cpu", "--")
+                    ram_limit = container.resources.limits.get("memory", "--")
+                    limit_request.append(f"CPU:{cpu_limit} Memory:{ram_limit}")
             else:
                 request.append("N/A")
                 limit_request.append("N/A")
