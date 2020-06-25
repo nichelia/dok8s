@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dok8s"
-version = "0.0.2"
+version = "0.0.3"
 description = "Output notes for a Kubernetes deployment"
 license = "MIT"
 authors = ["Nicholas Elia <me@nichelia.com>"]
