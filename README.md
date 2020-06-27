@@ -29,21 +29,56 @@ dok8s: Output notes for a Kubernetes deployment.
 
 ## Use Case
 
-A collection of output notes for Kubernetes deployments.  
-Input: [TODO].  
-Output: [TODO].
+Collect and export information about a Kubernetes deployment (such as components, resources and docker images/tags) in a table format.
+Input: Deployment files (collection of YAML definitions).  
+Output: Pretty-print tabular data.
 
 ### Requirements
 
-* [TODO]
+* Parse the following Kubernetes components:  
+  `ConfigMap`, `Deployment`, `Ingress`, `PersistentVolumeClaim`, `Secret`, `Service`, `StatefulSet`.
+* Collect relevant information:  
+  `kind`, `metadata name`, `data filenames`, `(init) containers`, `hosts / rules`, `storage name / size`, `ports`, `cpu/memory requests/limits`
+* Production-ready code.
 
 ### Assumptions
 
-* [TODO]
+* Parsed Kubernetes components are included in the [official python Kubernetes client](https://github.com/kubernetes-client/python)
 
 ### Design
 
-[TODO]
+This project is based on a CLI interface.
+
+### Example Output
+
+#### Input
+YAML file: [Cluster Autoscaler](https://raw.githubusercontent.com/kubernetes/autoscaler/master/cluster-autoscaler/cloudprovider/aws/examples/cluster-autoscaler-autodiscover.yaml)
+
+#### Output
+
+Components
+
+| Component          | Value              | Details            |
+|:-------------------|:-------------------|:-------------------|
+| ClusterRole        | cluster-autoscaler | --                 |
+| ClusterRoleBinding | cluster-autoscaler | --                 |
+| Deployment         | cluster-autoscaler | cluster-autoscaler |
+| Role               | cluster-autoscaler | --                 |
+| RoleBinding        | cluster-autoscaler | --                 |
+| ServiceAccount     | cluster-autoscaler | --                 |
+
+Resources
+
+| Platform/Service   | Name               | Request               | Limit Request         | Notes   |
+|:-------------------|:-------------------|:----------------------|:----------------------|:--------|
+| cluster-autoscaler | cluster-autoscaler | CPU:100m Memory:300Mi | CPU:100m Memory:300Mi | --      |
+
+Docker images
+
+| Platform/Service   | Name               | Image                         | Version   |
+|:-------------------|:-------------------|:------------------------------|:----------|
+| cluster-autoscaler | cluster-autoscaler | k8s.gcr.io/cluster-autoscaler | v1.14.7   |
+
 
 ## Configuration
 
@@ -57,7 +92,7 @@ Behaviour of the application can be configured via Environment Variables.
 
 ## Development
 
-### Configure for local development
+### Configure your local development
 
 * Clone [repo](https://github.com/nichelia/dok8s) on your local machine
 * Install [`conda`](https://www.anaconda.com) or [`miniconda`](https://docs.conda.io/en/latest/miniconda.html)
@@ -73,7 +108,7 @@ On a terminal, run the following (execute on project's root directory):
 * Activate project environment:  
 `$ . ./scripts/helpers/environment.sh`
 * Run the CLI using `poetry`:  
-`$ poetry run dok8s`
+`$ dok8s`
 
 ### Contribute
 
@@ -149,9 +184,9 @@ For production, a Docker image is used.
 This image is published publicly on [docker hub](https://hub.docker.com/repository/docker/nichelia/dok8s).
 
 * First pull image from docker hub:  
-`$ docker pull nichelia/dok8s:[version]`
-* First pull image from docker hub:  
-`$ docker run --rm -it -v ~/dok8s_bin:/usr/src/bin nichelia/dok8s:[version]`  
-This command mounts the application's bin (outcome) to user's root directory under dok8s_bin folder.
+`$ docker pull nichelia/dok8s:{version}`
+* Execute CLI via docker run:  
+`$ docker run --rm -it -v ~/dok8s_bin:/tmp/bin nichelia/dok8s:{version} {command} -d /tmp/bin -o {filename}`  
+This command mounts the application's bin (outcome) to user's root directory under dok8s_bin folder. The Kubernetes YAML files you want to parse, should be included in this directory.
 
-where version is the published application version (e.g. 0.1.0)
+where version is the published application version
